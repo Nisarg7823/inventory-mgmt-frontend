@@ -1,5 +1,17 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+### Configure backend API
+
+Create a `.env.local` file with:
+
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+# Optional overrides if your backend uses different paths
+NEXT_PUBLIC_AUTH_LOGIN_PATH=/auth/login
+NEXT_PUBLIC_AUTH_SIGNUP_PATH=/auth/signup
+NEXT_PUBLIC_AUTH_ME_PATH=/auth/me
+```
+
 ## Getting Started
 
 First, run the development server:
@@ -15,6 +27,15 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Available pages
+
+- `/` Landing with links to auth
+- `/login` Username/password login
+- `/signup` Account creation (username + password)
+- `/home` Protected page that fetches `/auth/me` using the stored token
+
+Auth is stored in `localStorage` under the key `inventory_auth`.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
