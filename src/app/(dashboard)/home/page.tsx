@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { apiGetInventory, apiGetProfile } from "@/lib/api";
+import { apiGetInventory, apiGetProfile, apiGetAnalytics } from "@/lib/api";
 import type { InventoryItem } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -11,28 +11,31 @@ import { Table, TBody, THead, TH, TR, TD } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 
 export default function HomePage() {
-  const { token } = useAuth();
+  const { token, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [adminStats, setAdminStats] = useState<any>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        const [me, items] = await Promise.all([
+        const [me, items, analytics] = await Promise.all([
           apiGetProfile(token ?? undefined).catch(() => null),
           apiGetInventory(token ?? undefined).catch(() => [] as InventoryItem[]),
+          isAdmin ? apiGetAnalytics(token ?? undefined).catch(() => null) : null,
         ]);
         setProfile(me);
         setInventory(items || []);
+        setAdminStats(analytics);
       } catch (err) {
         setError("Some dashboard data failed to load.");
       } finally {
         setLoading(false);
       }
     })();
-  }, [token]);
+  }, [token, isAdmin]);
 
   const totalItems = inventory.length;
   const lowStockCount = useMemo(
@@ -108,6 +111,11 @@ export default function HomePage() {
             <Button size="sm" variant="secondary" asChild>
               <Link href="/users">Users</Link>
             </Button>
+            {isAdmin && (
+              <Button size="sm" variant="secondary" asChild>
+                <Link href="/admin">Admin</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -154,6 +162,39 @@ export default function HomePage() {
             )}
           </CardContent>
         </Card>
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Admin Quick Stats</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-[color:var(--muted-foreground)]">System Status</p>
+                  <p className="text-2xl font-semibold text-green-600">
+                    {adminStats?.systemStatus || "Online"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-[color:var(--muted-foreground)]">Active Users</p>
+                  <p className="text-2xl font-semibold">
+                    {adminStats?.activeUsers || "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-[color:var(--muted-foreground)]">Last Backup</p>
+                  <p className="text-sm">
+                    {adminStats?.lastBackup ? new Date(adminStats.lastBackup).toLocaleDateString() : "Never"}
+                  </p>
+                </div>
+                <Button asChild variant="secondary" size="sm" className="w-full">
+                  <Link href="/admin">View Admin Panel</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

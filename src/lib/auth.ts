@@ -1,9 +1,9 @@
 export type StoredAuth = {
   token: string;
-  user?: unknown;
+  users?: unknown;
 };
 
-const STORAGE_KEY = "inventory_auth";
+const STORAGE_KEY = "inventory-mgmt";
 
 export function getStoredAuth(): StoredAuth | null {
   if (typeof window === "undefined") return null;
@@ -31,6 +31,8 @@ export function extractToken(response: Record<string, unknown>): string | null {
   const t = (response["token"] || response["access_token"] || response["jwtToken"]) as string | undefined;
   return t ?? null;
 }
+
+
 
 
 

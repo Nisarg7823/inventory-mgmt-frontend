@@ -20,7 +20,7 @@ function NavItem({ href, label }: { href: string; label: string }) {
 
 export default function Navbar() {
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, isAdmin } = useAuth();
 
   return (
     <header className="w-full border-b border-[color:var(--border)] sticky top-0 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--surface)]/80">
@@ -32,7 +32,13 @@ export default function Navbar() {
             <NavItem href="/products" label="Products" />
             <NavItem href="/orders" label="Orders" />
             <NavItem href="/inventory" label="Inventory" />
+            <NavItem href="/customers" label="Customers" />
+            <NavItem href="/suppliers" label="Suppliers" />
+            <NavItem href="/warehouse" label="Warehouse" />
             <NavItem href="/users" label="Users" />
+            <NavItem href="/notifications" label="Notifications" />
+            <NavItem href="/reports" label="Reports" />
+            {isAdmin && <NavItem href="/admin" label="Admin" />}
           </nav>
         </div>
         <div className="flex items-center gap-2">{isAuthenticated ? <UserMenu /> : null}</div>
