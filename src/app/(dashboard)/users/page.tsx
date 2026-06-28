@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { apiGetAllUsers, apiUpdateUserRole } from "@/lib/api";
 
 export default function UsersPage() {
-  const { isAdmin, token } = useAuth();
+  const { isAdmin,roleLoading, token } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +20,7 @@ export default function UsersPage() {
   const [filterRole, setFilterRole] = useState<string>("all");
 
   useEffect(() => {
+    console.log("useEffect triggered with isAdmin:", isAdmin, "and token:", token);
     if (isAdmin && token) {
       loadUsers();
     }
@@ -27,6 +28,7 @@ export default function UsersPage() {
 
   const loadUsers = async () => {
     setLoading(true);
+    console.log("Loading users with token:", token);
     try {
       const usersData = await apiGetAllUsers(token || undefined);
       setUsers(usersData);
@@ -63,6 +65,13 @@ export default function UsersPage() {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <p>Loading…</p>
+      </div>
+    );
+  }
+    if (roleLoading) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <p className="text-[color:var(--muted-foreground)]">Loading…</p>
       </div>
     );
   }

@@ -4,13 +4,16 @@
   --background: #ffffff;
   --foreground: #171717;
   --surface: #ffffff;
-  --border: #e5e7eb; /* gray-200 */
-  --muted: #f3f4f6; /* gray-100 */
-  --muted-foreground: #6b7280; /* gray-500 */
-  --accent: #2563eb; /* blue-600 */
+  --border: #e5e7eb;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #2563eb;
   --accent-foreground: #ffffff;
   --ring: #2563eb;
   --radius: 0.75rem;
+
+  --sidebar-collapsed: 56px;
+  --sidebar-expanded: 220px;
 }
 
 @theme inline {
@@ -29,11 +32,11 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
-    --surface: #0f0f0f;
+    --surface: #111111;
     --border: #2a2a2a;
-    --muted: #111827; /* gray-900 */
-    --muted-foreground: #9ca3af; /* gray-400 */
-    --accent: #60a5fa; /* blue-400 */
+    --muted: #1a1a1a;
+    --muted-foreground: #9ca3af;
+    --accent: #60a5fa;
     --accent-foreground: #0b0b0b;
     --ring: #60a5fa;
   }
@@ -45,11 +48,114 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Base typography rhythm */
 h1, h2, h3, h4, h5, h6 { line-height: 1.25; }
 p { line-height: 1.7; }
 
-/* Utility containers */
+/* ─── Sidebar ─────────────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  width: var(--sidebar-collapsed);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  overflow: hidden;
+  transition: width 220ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 220ms ease;
+}
+
+.sidebar:hover {
+  width: var(--sidebar-expanded);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+}
+
+/* Brand row */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 57px;
+}
+
+.sidebar-brand-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-brand-text {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--foreground);
+}
+
+/* Nav container */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Hide scrollbar in nav when collapsed */
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Labels: hidden when collapsed, revealed on hover */
+.sidebar-label {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 200ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 180ms ease;
+}
+
+.sidebar:hover .sidebar-label {
+  max-width: 160px;
+  opacity: 1;
+}
+
+/* Icons */
+.sidebar-icon {
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  line-height: 1;
+}
+
+/* ─── Dashboard shell ──────────────────────────────────────── */
+.dashboard-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  flex: 1;
+  margin-left: var(--sidebar-collapsed);
+  min-width: 0;
+  transition: margin-left 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Utilities ───────────────────────────────────────────── */
 .container { width: 100%; margin-left: auto; margin-right: auto; padding-left: 1rem; padding-right: 1rem; }
 .container-sm { max-width: 40rem; }
 .container-md { max-width: 56rem; }

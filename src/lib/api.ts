@@ -207,7 +207,7 @@ function getAdminBulkOperationsPath(): string {
 }
 
 function getAdminUsersPath(): string {
-  return process.env.NEXT_PUBLIC_ADMIN_USERS_PATH || "/api/admin/users";
+  return process.env.NEXT_PUBLIC_ADMIN_USERS_PATH || "/api/user/users";
 }
 
 function getAdminInventoryExportPath(): string {
@@ -305,6 +305,7 @@ export async function apiBulkUpdateInventory(updates: any[], token?: string): Pr
 export async function apiGetAllUsers(token?: string): Promise<any[]> {
   const headers: Record<string, string> = {};
   if (token) headers["Authorization"] = `Bearer ${token}`;
+  console.log("Fetching users with token:", token);
   const res = await fetch(`${getApiBaseUrl()}${getAdminUsersPath()}`, {
     method: "GET",
     headers,

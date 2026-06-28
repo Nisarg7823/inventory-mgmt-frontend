@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/Label";
 // } from "@/lib/api";
 
 export default function ReportsPage() {
-  const { isAdmin, token } = useAuth();
+  const { isAdmin,roleLoading, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reportConfig, setReportConfig] = useState({
@@ -84,6 +84,14 @@ export default function ReportsPage() {
       }
     }));
   };
+
+  if (roleLoading) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <p className="text-[color:var(--muted-foreground)]">Loading…</p>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (

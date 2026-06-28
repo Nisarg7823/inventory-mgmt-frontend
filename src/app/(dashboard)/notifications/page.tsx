@@ -13,7 +13,7 @@ import {
 } from "@/lib/api";
 
 export default function NotificationsPage() {
-  const { isAdmin, token } = useAuth();
+  const { isAdmin, roleLoading, token } = useAuth();
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
   const [lowStockNotifications, setLowStockNotifications] = useState<any[]>([]);
   const [outOfStockNotifications, setOutOfStockNotifications] = useState<any[]>([]);
@@ -93,6 +93,13 @@ export default function NotificationsPage() {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <p>Loading…</p>
+      </div>
+    );
+  }
+    if (roleLoading) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <p className="text-[color:var(--muted-foreground)]">Loading…</p>
       </div>
     );
   }

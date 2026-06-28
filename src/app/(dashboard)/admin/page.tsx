@@ -20,7 +20,7 @@ import {
 } from "@/lib/api";
 
 export default function AdminPage() {
-  const { isAdmin, loading, token } = useAuth();
+  const { isAdmin, loading, roleLoading, token } = useAuth();
   const [systemSettings, setSystemSettings] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
@@ -105,6 +105,13 @@ export default function AdminPage() {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
         <p>Loading…</p>
+      </div>
+    );
+  }
+    if (loading || roleLoading) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <p className="text-[color:var(--muted-foreground)]">Loading…</p>
       </div>
     );
   }
