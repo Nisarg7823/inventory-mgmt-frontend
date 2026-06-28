@@ -10,7 +10,6 @@ import {
   ReactNode,
 } from "react";
 import { StoredAuth, clearAuth, getStoredAuth, storeAuth } from "@/lib/auth";
-import { apiGetUserRole } from "@/lib/api";
 
 type AuthContextValue = {
   token: string | null;
@@ -19,12 +18,32 @@ type AuthContextValue = {
   isAdmin: boolean;
   isAuthenticated: boolean;
   loading: boolean;
+  roleLoading: boolean;
   setAuth: (auth: StoredAuth) => void;
   loginWithToken: (token: string, user?: unknown) => void;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function extractIsAdmin(users: unknown): boolean {
+  if (!users || typeof users !== "object") return false;
+  const u = users as Record<string, unknown>;
+  // Roles stored as string array: ["ROLE_ADMIN"]
+  if (Array.isArray(u.roles)) {
+    return u.roles.includes("ROLE_ADMIN");
+  }
+  // Fallback: roles stored as Spring Security authority objects [{ authority: "ROLE_ADMIN" }]
+  if (Array.isArray(u.authorities)) {
+    return u.authorities.some(
+      (r: unknown) =>
+        typeof r === "object" &&
+        r !== null &&
+        (r as Record<string, unknown>).authority === "ROLE_ADMIN"
+    );
+  }
+  return false;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
@@ -33,37 +52,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Fetch user role when token changes
-  useEffect(() => {
-    if (!token || !username) {
+  function applyUser(users: unknown) {
+    setUser(users ?? null);
+    if (users && typeof users === "object" && users !== null) {
+      const u = users as Record<string, unknown>;
+      setUsername((u.username as string) || null);
+      setIsAdmin(extractIsAdmin(users));
+    } else {
+      setUsername(null);
       setIsAdmin(false);
-      return;
     }
-    
-    apiGetUserRole(username, token)
-      .then((roles) => {
-        const hasAdminRole = roles.some(role => role.authority === "ROLE_ADMIN");
-        setIsAdmin(hasAdminRole);
-      })
-      .catch(() => {
-        setIsAdmin(false);
-      });
-  }, [token, username]);
+  }
 
   // Initialize from localStorage
   useEffect(() => {
     const stored = getStoredAuth();
     if (stored?.token) {
       setToken(stored.token);
-      setUser(stored.users ?? null);
-      // Try to extract username from user object
-      if (stored.users && typeof stored.users === "object" && stored.users !== null) {
-        // @ts-ignore
-        setUsername(stored.users.username || null);
-        console.log(stored.users)
-      } else {
-        setUsername(null);
-      }
+      applyUser(stored.users);
     }
     setLoading(false);
   }, []);
@@ -74,13 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (e.key === "inventory-mgmt") {
         const next = getStoredAuth();
         setToken(next?.token ?? null);
-        setUser(next?.users ?? null);
-        if (next?.users && typeof next?.users === "object" && next?.users !== null) {
-          // @ts-ignore
-          setUsername(next?.users.username || null);
-        } else {
-          setUsername(null);
-        }
+        applyUser(next?.users);
       }
     };
     window.addEventListener("storage", onStorage);
@@ -89,20 +89,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setAuth = useCallback((auth: StoredAuth) => {
     setToken(auth.token);
-    setUser(auth.users ?? null);
-    if (auth.users && typeof auth.users === "object" && auth.users !== null) {
-      // @ts-ignore
-      setUsername(auth.users.username || null);
-    } else {
-      setUsername(null);
-    }
+    applyUser(auth.users);
     storeAuth(auth);
   }, []);
 
-  const loginWithToken = useCallback((newToken: string, newUser?: unknown) => {
-    const next: StoredAuth = { token: newToken, users: newUser };
-    setAuth(next);
-  }, [setAuth]);
+  const loginWithToken = useCallback(
+    (newToken: string, newUser?: unknown) => {
+      const next: StoredAuth = { token: newToken, users: newUser };
+      setAuth(next);
+    },
+    [setAuth]
+  );
 
   const logout = useCallback(() => {
     clearAuth();
@@ -112,17 +109,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(false);
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    token,
-    user,
-    username,
-    isAdmin,
-    isAuthenticated: Boolean(token),
-    loading,
-    setAuth,
-    loginWithToken,
-    logout,
-  }), [token, user, username, isAdmin, loading, setAuth, loginWithToken, logout]);
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      token,
+      user,
+      username,
+      isAdmin,
+      isAuthenticated: Boolean(token),
+      loading,
+      roleLoading: false, // roles are now read synchronously from stored auth
+      setAuth,
+      loginWithToken,
+      logout,
+    }),
+    [token, user, username, isAdmin, loading, setAuth, loginWithToken, logout]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -137,5 +138,3 @@ export function useIsAuthenticated(): { loading: boolean; isAuthenticated: boole
   const { loading, isAuthenticated } = useAuth();
   return { loading, isAuthenticated };
 }
-
-

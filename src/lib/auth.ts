@@ -27,12 +27,13 @@ export function clearAuth() {
 }
 
 export function extractToken(response: Record<string, unknown>): string | null {
-  // Common fields: token, access_token, jwt
   const t = (response["token"] || response["access_token"] || response["jwtToken"]) as string | undefined;
   return t ?? null;
 }
 
-
-
-
-
+export function extractRoles(response: Record<string, unknown>): string[] {
+  // Login response: { username, roles: ["ROLE_ADMIN"], jwtToken }
+  const roles = response["roles"];
+  if (Array.isArray(roles)) return roles as string[];
+  return [];
+}

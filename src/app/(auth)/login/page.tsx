@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { apiLogin } from "@/lib/api";
-import { clearAuth, extractToken, storeAuth } from "@/lib/auth";
+import { clearAuth, extractToken, extractRoles, storeAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -23,11 +23,19 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const resp = await apiLogin({ username, password });
-      const token = extractToken(resp as Record<string, unknown>);
+      const resp = await apiLogin({ username, password }) as Record<string, unknown>;
+      const token = extractToken(resp);
       if (!token) throw new Error("No token returned by server");
-      storeAuth({ token, user: (resp as any).user });
-      loginWithToken(token, (resp as any).user);
+
+      // Build user object from top-level response fields
+      // Response shape: { username, roles: ["ROLE_ADMIN"], jwtToken }
+      const userObj = {
+        username: (resp.username as string) ?? username,
+        roles: extractRoles(resp),
+      };
+
+      storeAuth({ token, users: userObj });
+      loginWithToken(token, userObj);
       router.replace("/home");
     } catch (err) {
       setError((err as Error).message || "Login failed");
@@ -81,5 +89,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
