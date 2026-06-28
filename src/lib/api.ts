@@ -42,11 +42,11 @@ export function getApiBaseUrl(): string {
 }
 
 function getLoginPath(): string {
-  return process.env.NEXT_PUBLIC_AUTH_LOGIN_PATH || "/auth/login";
+  return process.env.NEXT_PUBLIC_AUTH_LOGIN_PATH || "/api/auth/login";
 }
 
 function getSignupPath(): string {
-  return process.env.NEXT_PUBLIC_AUTH_SIGNUP_PATH || "/auth/signup";
+  return process.env.NEXT_PUBLIC_AUTH_SIGNUP_PATH || "/api/user/register";
 }
 
 function getMePath(): string {
